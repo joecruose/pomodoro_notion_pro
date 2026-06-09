@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notion Pomodoro | Unified Block</title>
+  <title>Notion Pomodoro | Premium Block</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +18,7 @@
       --card-top: #1F1F1F;
       --card-bottom: #111111;
       --text-main: #FFFFFF;
-      --text-muted: #999999;
+      --text-muted: #888888;
       --accent: #FFFFFF;
       --accent-text: #272727;
       --font-ui: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -27,221 +27,101 @@
     * { box-sizing: border-box; }
 
     html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden; 
-      background-color: var(--bg-transparent);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: var(--font-ui);
-      -webkit-font-smoothing: antialiased;
+      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; 
+      background-color: var(--bg-transparent); display: flex; justify-content: center;
+      align-items: center; font-family: var(--font-ui); -webkit-font-smoothing: antialiased;
     }
 
-    /* THE UNIFIED WIDGET BLOCK */
     .widget-block {
-      background-color: var(--block-bg);
-      border: 1px solid var(--block-border);
-      border-radius: 24px;
-      padding: 32px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 24px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
-      width: 100%;
-      max-width: 320px;
+      background-color: var(--block-bg); border: 1px solid var(--block-border);
+      border-radius: 24px; padding: 32px; display: flex; flex-direction: column;
+      align-items: center; gap: 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+      width: 100%; max-width: 340px;
     }
 
-    /* 1. TOP TABS */
+    /* 1. SLIDING TABS (Smooth Animation) */
     .mode-tabs {
-      display: flex;
-      gap: 8px;
-      background: rgba(0,0,0,0.15);
-      padding: 6px;
-      border-radius: 20px;
+      position: relative; display: flex; background: rgba(0,0,0,0.2);
+      padding: 6px; border-radius: 20px; width: 100%; max-width: 280px;
+    }
+
+    .tab-indicator {
+      position: absolute; top: 6px; bottom: 6px; width: calc(33.33% - 4px);
+      background: var(--text-main); border-radius: 14px;
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); z-index: 0;
     }
 
     .pill-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      padding: 6px 14px;
-      border-radius: 14px;
-      font-family: var(--font-ui);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      flex: 1; position: relative; z-index: 1; background: transparent; border: none;
+      color: var(--text-muted); padding: 8px 0; font-family: var(--font-ui);
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: color 0.3s ease;
     }
 
-    .pill-btn:hover {
-      color: var(--text-main);
-    }
-
-    .pill-btn.active {
-      background: var(--text-main);
-      color: var(--accent-text);
-    }
+    .pill-btn:hover { color: #DDDDDD; }
+    .pill-btn.active { color: var(--accent-text); }
 
     /* 2. TIMER DISPLAY */
-    .timer-display {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .timer-display { display: flex; align-items: center; gap: 8px; }
 
     .card {
-      position: relative;
-      width: 100px; 
-      height: 140px; 
+      position: relative; width: 100px; height: 140px; 
       background: linear-gradient(to bottom, var(--card-top) 50%, var(--card-bottom) 50%);
-      border-radius: 12px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.05);
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     }
 
     .number {
-      font-family: 'Oswald', sans-serif; 
-      font-size: 80px; 
-      font-weight: 700; 
-      color: var(--text-main);
-      font-variant-numeric: tabular-nums;
-      transform: scaleY(1.10); 
-      padding-bottom: 8px; 
-      z-index: 1;
+      font-family: 'Oswald', sans-serif; font-size: 80px; font-weight: 700; color: var(--text-main);
+      font-variant-numeric: tabular-nums; transform: scaleY(1.10); padding-bottom: 8px; z-index: 1;
     }
 
     .card::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background-color: rgba(0,0,0,0.6);
-      z-index: 5;
+      content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 2px;
+      background-color: rgba(0,0,0,0.6); z-index: 5;
     }
 
     .colon {
-      font-family: 'Oswald', sans-serif;
-      font-size: 50px;
-      font-weight: 700;
-      color: var(--text-muted);
-      padding-bottom: 10px;
-      animation: pulse 2s infinite;
+      font-family: 'Oswald', sans-serif; font-size: 50px; font-weight: 700; color: var(--text-muted);
+      padding-bottom: 10px; animation: pulse 2s infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
     /* 3. MAIN CONTROLS */
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      width: 100%;
-      justify-content: center;
-    }
+    .controls { display: flex; align-items: center; gap: 16px; width: 100%; justify-content: center; }
 
     .btn-main {
-      background: var(--accent);
-      color: var(--accent-text);
-      border: none;
-      padding: 12px 36px;
-      border-radius: 24px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.1s ease, opacity 0.2s ease;
-      flex-grow: 1;
-      max-width: 160px;
+      background: var(--accent); color: var(--accent-text); border: none; padding: 14px 36px;
+      border-radius: 24px; font-size: 16px; font-weight: 600; cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease, box-shadow 0.2s ease;
+      flex-grow: 1; max-width: 160px; box-shadow: 0 4px 12px rgba(255,255,255,0.1);
     }
 
-    .btn-main:active { transform: scale(0.96); }
+    .btn-main:active { transform: scale(0.95); box-shadow: 0 2px 6px rgba(255,255,255,0.05); }
     .btn-main:hover { opacity: 0.9; }
 
     .btn-icon {
-      background: rgba(0,0,0,0.15);
-      border: 1px solid var(--block-border);
-      color: var(--text-main);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      padding: 10px;
-      border-radius: 50%;
+      background: rgba(0,0,0,0.2); border: 1px solid var(--block-border); color: var(--text-main);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); padding: 12px; border-radius: 50%;
     }
 
-    .btn-icon:hover {
-      background: var(--text-main);
-      color: var(--accent-text);
-      transform: rotate(-30deg);
-    }
+    .btn-icon:hover { background: var(--text-main); color: var(--accent-text); transform: rotate(-45deg); }
+    .btn-icon:active { transform: scale(0.9) rotate(-45deg); }
+    .btn-icon svg { width: 20px; height: 20px; fill: currentColor; }
 
-    .btn-icon svg {
-      width: 20px;
-      height: 20px;
-      fill: currentColor;
-    }
-
-    /* 4. GENERIC AUDIO SELECTION */
-    .music-container {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border-top: 1px solid var(--block-border);
-      padding-top: 20px;
-    }
-
-    .music-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      text-align: center;
-    }
-
-    .music-controls {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-    }
+    /* 4. AUDIO SELECTION */
+    .music-container { width: 100%; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--block-border); padding-top: 20px; }
+    .music-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+    .music-controls { display: flex; justify-content: center; gap: 8px; }
 
     .music-btn {
-      background: transparent;
-      border: 1px solid var(--block-border);
-      color: var(--text-muted);
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: all 0.2s ease;
-      flex: 1;
+      background: transparent; border: 1px solid var(--block-border); color: var(--text-muted);
+      font-size: 12px; font-weight: 500; cursor: pointer; padding: 6px 12px; border-radius: 6px;
+      transition: all 0.2s ease; flex: 1;
     }
-
-    .music-btn:hover { 
-      border-color: var(--text-muted);
-      color: var(--text-main); 
-    }
-    
-    .music-btn.active {
-      color: var(--text-main);
-      border-color: var(--text-main);
-      background: rgba(255, 255, 255, 0.05);
-    }
+    .music-btn:hover { border-color: var(--text-muted); color: var(--text-main); }
+    .music-btn.active { color: var(--text-main); border-color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
   </style>
 </head>
 <body>
@@ -249,27 +129,22 @@
   <div class="widget-block">
     
     <div class="mode-tabs">
-      <button class="pill-btn active" id="btn-pomo" onclick="setMode('pomo')">Pomodoro</button>
-      <button class="pill-btn" id="btn-short" onclick="setMode('short')">Short</button>
-      <button class="pill-btn" id="btn-long" onclick="setMode('long')">Long</button>
+      <div class="tab-indicator" id="tab-slider"></div>
+      <button class="pill-btn active" id="btn-pomo" onclick="setMode('pomo', 0)">Pomodoro</button>
+      <button class="pill-btn" id="btn-short" onclick="setMode('short', 1)">Short</button>
+      <button class="pill-btn" id="btn-long" onclick="setMode('long', 2)">Long</button>
     </div>
 
     <div class="timer-display">
-      <div class="card">
-        <div class="number" id="minutes">25</div>
-      </div>
+      <div class="card"><div class="number" id="minutes">25</div></div>
       <div class="colon">:</div>
-      <div class="card">
-        <div class="number" id="seconds">00</div>
-      </div>
+      <div class="card"><div class="number" id="seconds">00</div></div>
     </div>
 
     <div class="controls">
       <button class="btn-main" id="btn-start" onclick="toggleTimer()">Start</button>
       <button class="btn-icon" id="btn-reset" onclick="resetTimer()" aria-label="Reset Timer">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"></path>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"></path></svg>
       </button>
     </div>
 
@@ -289,13 +164,46 @@
   </div>
 
   <script>
-    /* --- TIMER & AUDIO LOGIC --- */
-    const MODES = {
-      pomo: 25 * 60,
-      short: 5 * 60,
-      long: 15 * 60
-    };
+    /* --- ZERO-DEPENDENCY SYNTHESIZED SOUND EFFECTS --- */
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let sfxCtx;
 
+    function initAudio() {
+      if (!sfxCtx) sfxCtx = new AudioContext();
+      if (sfxCtx.state === 'suspended') sfxCtx.resume();
+    }
+
+    function playClickSound() {
+      initAudio();
+      const osc = sfxCtx.createOscillator();
+      const gain = sfxCtx.createGain();
+      osc.connect(gain);
+      gain.connect(sfxCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, sfxCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, sfxCtx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.3, sfxCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, sfxCtx.currentTime + 0.05);
+      osc.start();
+      osc.stop(sfxCtx.currentTime + 0.05);
+    }
+
+    function playBellSound() {
+      initAudio();
+      const osc = sfxCtx.createOscillator();
+      const gain = sfxCtx.createGain();
+      osc.connect(gain);
+      gain.connect(sfxCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, sfxCtx.currentTime); // A5 note
+      gain.gain.setValueAtTime(0.6, sfxCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, sfxCtx.currentTime + 2.5); // Smooth 2.5s fade out
+      osc.start();
+      osc.stop(sfxCtx.currentTime + 2.5);
+    }
+
+    /* --- TIMER & AUDIO LOGIC --- */
+    const MODES = { pomo: 25 * 60, short: 5 * 60, long: 15 * 60 };
     let currentMode = 'pomo';
     let timeLeft = MODES.pomo;
     let timerId = null;
@@ -305,6 +213,7 @@
     const elSeconds = document.getElementById('seconds');
     const btnStart = document.getElementById('btn-start');
     const audioPlayer = document.getElementById('bgm-player');
+    const tabSlider = document.getElementById('tab-slider');
 
     function updateDisplay() {
       const m = Math.floor(timeLeft / 60);
@@ -313,59 +222,63 @@
       elSeconds.textContent = String(s).padStart(2, '0');
     }
 
-    function setMode(mode) {
-      if (isRunning) toggleTimer(); // Pause if switching modes
+    function setMode(mode, index) {
+      playClickSound();
+      if (isRunning) toggleTimer(false); // Pause without click sound
       
       currentMode = mode;
       timeLeft = MODES[mode];
       updateDisplay();
 
+      // Animate Slider
+      tabSlider.style.transform = `translateX(${index * 100}%)`;
+
+      // Update Text Colors
       document.getElementById('btn-pomo').classList.remove('active');
       document.getElementById('btn-short').classList.remove('active');
       document.getElementById('btn-long').classList.remove('active');
       document.getElementById(`btn-${mode}`).classList.add('active');
     }
 
-    function toggleTimer() {
+    function toggleTimer(triggerSound = true) {
+      if (triggerSound) playClickSound();
+
       if (isRunning) {
         clearInterval(timerId);
         btnStart.textContent = "Start";
         isRunning = false;
-        audioPlayer.pause(); // Instantly pause audio
+        audioPlayer.pause(); 
       } else {
         timerId = setInterval(() => {
           timeLeft--;
           updateDisplay();
           if (timeLeft <= 0) {
-            toggleTimer(); // Stop exactly at zero
+            toggleTimer(false); 
+            playBellSound(); // Play the synthesized chime when done!
           }
         }, 1000);
         btnStart.textContent = "Pause";
         isRunning = true;
-        audioPlayer.play(); // Instantly play audio
+        audioPlayer.play(); 
       }
     }
 
     function resetTimer() {
-      if (isRunning) toggleTimer();
+      playClickSound();
+      if (isRunning) toggleTimer(false);
       timeLeft = MODES[currentMode];
       updateDisplay();
     }
 
     function changeTrack(btnNum, audioUrl) {
-      // 1. Update Buttons
+      playClickSound();
       document.getElementById('track-1').classList.remove('active');
       document.getElementById('track-2').classList.remove('active');
       document.getElementById('track-3').classList.remove('active');
       document.getElementById(`track-${btnNum}`).classList.add('active');
 
-      // 2. Load New Audio
       audioPlayer.src = audioUrl;
-      
-      // 3. Keep playing if the timer is already running
-      if (isRunning) {
-        audioPlayer.play();
-      }
+      if (isRunning) audioPlayer.play();
     }
 
     updateDisplay();
