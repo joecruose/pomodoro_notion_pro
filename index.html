@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notion Pomodoro | Pro Widget</title>
+  <title>Notion Pomodoro | Unified Block</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,12 +12,15 @@
   <style>
     /* MONOCHROME VARIABLES */
     :root {
-      --bg-color: transparent; 
-      --card-top: #2a2a2a;
+      --bg-transparent: transparent;
+      --block-bg: #272727; 
+      --block-border: #3A3A3A;
+      --card-top: #1F1F1F;
       --card-bottom: #111111;
-      --text-main: #ffffff;
-      --text-muted: #888888;
-      --border-color: #444444;
+      --text-main: #FFFFFF;
+      --text-muted: #999999;
+      --accent: #FFFFFF;
+      --accent-text: #272727;
       --font-ui: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
 
@@ -29,7 +32,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden; 
-      background-color: var(--bg-color);
+      background-color: var(--bg-transparent);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -37,26 +40,36 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    .widget-container {
+    /* THE UNIFIED WIDGET BLOCK */
+    .widget-block {
+      background-color: var(--block-bg);
+      border: 1px solid var(--block-border);
+      border-radius: 24px;
+      padding: 32px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 24px;
-      transform: scale(0.9); /* Scaled slightly for perfect Notion fit */
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 320px;
     }
 
-    /* 1. TOP TABS (Pomodoro / Short / Long) */
+    /* 1. TOP TABS */
     .mode-tabs {
       display: flex;
-      gap: 12px;
+      gap: 8px;
+      background: rgba(0,0,0,0.15);
+      padding: 6px;
+      border-radius: 20px;
     }
 
     .pill-btn {
       background: transparent;
-      border: 1px solid var(--border-color);
+      border: none;
       color: var(--text-muted);
-      padding: 6px 16px;
-      border-radius: 20px;
+      padding: 6px 14px;
+      border-radius: 14px;
       font-family: var(--font-ui);
       font-size: 13px;
       font-weight: 600;
@@ -65,34 +78,33 @@
     }
 
     .pill-btn:hover {
-      border-color: var(--text-main);
       color: var(--text-main);
     }
 
     .pill-btn.active {
       background: var(--text-main);
-      color: #000000;
-      border-color: var(--text-main);
+      color: var(--accent-text);
     }
 
-    /* 2. THE TIMER DISPLAY (Flipclock Aesthetic) */
+    /* 2. TIMER DISPLAY */
     .timer-display {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .card {
       position: relative;
-      width: 110px; 
-      height: 150px; 
+      width: 100px; 
+      height: 140px; 
       background: linear-gradient(to bottom, var(--card-top) 50%, var(--card-bottom) 50%);
       border-radius: 12px;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     }
 
     .number {
@@ -113,13 +125,13 @@
       left: 0;
       width: 100%;
       height: 2px;
-      background-color: rgba(0,0,0,0.8);
+      background-color: rgba(0,0,0,0.6);
       z-index: 5;
     }
 
     .colon {
       font-family: 'Oswald', sans-serif;
-      font-size: 60px;
+      font-size: 50px;
       font-weight: 700;
       color: var(--text-muted);
       padding-bottom: 10px;
@@ -131,106 +143,115 @@
       50% { opacity: 0.3; }
     }
 
-    /* 3. CONTROLS (Start & Reset) */
+    /* 3. MAIN CONTROLS */
     .controls {
       display: flex;
       align-items: center;
       gap: 16px;
+      width: 100%;
+      justify-content: center;
     }
 
     .btn-main {
-      background: var(--text-main);
-      color: #000000;
+      background: var(--accent);
+      color: var(--accent-text);
       border: none;
-      padding: 10px 32px;
+      padding: 12px 36px;
       border-radius: 24px;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.1s ease, opacity 0.2s ease;
+      flex-grow: 1;
+      max-width: 160px;
     }
 
     .btn-main:active { transform: scale(0.96); }
     .btn-main:hover { opacity: 0.9; }
 
     .btn-icon {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
+      background: rgba(0,0,0,0.15);
+      border: 1px solid var(--block-border);
+      color: var(--text-main);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: color 0.2s ease, transform 0.2s ease;
-      padding: 8px;
+      transition: all 0.2s ease;
+      padding: 10px;
+      border-radius: 50%;
     }
 
     .btn-icon:hover {
-      color: var(--text-main);
+      background: var(--text-main);
+      color: var(--accent-text);
       transform: rotate(-30deg);
     }
 
     .btn-icon svg {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
       fill: currentColor;
     }
 
-    /* 4. MUSIC SELECTION */
-    .music-controls {
+    /* 4. GENERIC AUDIO SELECTION */
+    .music-container {
+      width: 100%;
       display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 10px;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid var(--block-border);
+      padding-top: 20px;
     }
 
     .music-label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-right: 4px;
+      text-align: center;
+    }
+
+    .music-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
     }
 
     .music-btn {
       background: transparent;
-      border: none;
+      border: 1px solid var(--block-border);
       color: var(--text-muted);
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 6px 12px;
+      border-radius: 6px;
       transition: all 0.2s ease;
+      flex: 1;
     }
 
-    .music-btn:hover { color: var(--text-main); }
+    .music-btn:hover { 
+      border-color: var(--text-muted);
+      color: var(--text-main); 
+    }
+    
     .music-btn.active {
       color: var(--text-main);
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    /* HIDDEN YOUTUBE PLAYER */
-    #yt-player {
-      position: absolute;
-      width: 0;
-      height: 0;
-      opacity: 0;
-      pointer-events: none;
+      border-color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
     }
   </style>
-
-  <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
 
-  <div class="widget-container">
+  <div class="widget-block">
     
     <div class="mode-tabs">
       <button class="pill-btn active" id="btn-pomo" onclick="setMode('pomo')">Pomodoro</button>
-      <button class="pill-btn" id="btn-short" onclick="setMode('short')">Short Break</button>
-      <button class="pill-btn" id="btn-long" onclick="setMode('long')">Long Break</button>
+      <button class="pill-btn" id="btn-short" onclick="setMode('short')">Short</button>
+      <button class="pill-btn" id="btn-long" onclick="setMode('long')">Long</button>
     </div>
 
     <div class="timer-display">
@@ -252,19 +273,23 @@
       </button>
     </div>
 
-    <div class="music-controls">
-      <span class="music-label">Audio</span>
-      <button class="music-btn active" id="track-1" onclick="changeTrack(1, 'jfKfPfyJRdk')">Lofi Beats</button>
-      <button class="music-btn" id="track-2" onclick="changeTrack(2, 'mPZkdNFkNps')">Rain & Thunder</button>
-      <button class="music-btn" id="track-3" onclick="changeTrack(3, 'h2zkV-l_TbY')">Cafe Jazz</button>
+    <div class="music-container">
+      <span class="music-label">Background Audio</span>
+      <div class="music-controls">
+        <button class="music-btn active" id="track-1" onclick="changeTrack(1, 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3')">Track 1</button>
+        <button class="music-btn" id="track-2" onclick="changeTrack(2, 'https://cdn.pixabay.com/audio/2021/09/06/audio_37aeafba07.mp3')">Track 2</button>
+        <button class="music-btn" id="track-3" onclick="changeTrack(3, 'https://cdn.pixabay.com/audio/2021/08/09/audio_6b528b18dc.mp3')">Track 3</button>
+      </div>
     </div>
 
-    <div id="yt-player"></div>
+    <audio id="bgm-player" loop preload="none">
+      <source src="https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" type="audio/mpeg">
+    </audio>
 
   </div>
 
   <script>
-    /* --- TIMER LOGIC --- */
+    /* --- TIMER & AUDIO LOGIC --- */
     const MODES = {
       pomo: 25 * 60,
       short: 5 * 60,
@@ -279,6 +304,7 @@
     const elMinutes = document.getElementById('minutes');
     const elSeconds = document.getElementById('seconds');
     const btnStart = document.getElementById('btn-start');
+    const audioPlayer = document.getElementById('bgm-player');
 
     function updateDisplay() {
       const m = Math.floor(timeLeft / 60);
@@ -294,7 +320,6 @@
       timeLeft = MODES[mode];
       updateDisplay();
 
-      // Update UI Tabs
       document.getElementById('btn-pomo').classList.remove('active');
       document.getElementById('btn-short').classList.remove('active');
       document.getElementById('btn-long').classList.remove('active');
@@ -303,30 +328,21 @@
 
     function toggleTimer() {
       if (isRunning) {
-        // Pause Logic
         clearInterval(timerId);
         btnStart.textContent = "Start";
         isRunning = false;
-        if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
-          ytPlayer.pauseVideo();
-        }
+        audioPlayer.pause(); // Instantly pause audio
       } else {
-        // Start Logic
         timerId = setInterval(() => {
           timeLeft--;
           updateDisplay();
           if (timeLeft <= 0) {
-            toggleTimer(); // Stop at zero
-            // Optional: Play a highly compressed ding.mp3 here
+            toggleTimer(); // Stop exactly at zero
           }
         }, 1000);
         btnStart.textContent = "Pause";
         isRunning = true;
-        
-        // Command the hidden YouTube player to play
-        if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
-          ytPlayer.playVideo();
-        }
+        audioPlayer.play(); // Instantly play audio
       }
     }
 
@@ -336,49 +352,22 @@
       updateDisplay();
     }
 
-
-    /* --- YOUTUBE API LOGIC --- */
-    let ytPlayer;
-    let currentTrackId = 'jfKfPfyJRdk'; // Default Lofi Girl ID
-
-    // This function is automatically called by the YouTube script once it loads
-    function onYouTubeIframeAPIReady() {
-      ytPlayer = new YT.Player('yt-player', {
-        height: '10',
-        width: '10',
-        videoId: currentTrackId,
-        playerVars: {
-          'autoplay': 0,
-          'controls': 0,
-          'disablekb': 1,
-          'fs': 0,
-          'loop': 1,
-          'playlist': currentTrackId // Required for looping single videos
-        }
-      });
-    }
-
-    function changeTrack(btnNum, videoId) {
-      // 1. Update UI
+    function changeTrack(btnNum, audioUrl) {
+      // 1. Update Buttons
       document.getElementById('track-1').classList.remove('active');
       document.getElementById('track-2').classList.remove('active');
       document.getElementById('track-3').classList.remove('active');
       document.getElementById(`track-${btnNum}`).classList.add('active');
 
-      // 2. Instruct YouTube Player
-      currentTrackId = videoId;
-      if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-        if (isRunning) {
-          // If timer is running, load and instantly play the new song
-          ytPlayer.loadVideoById({ 'videoId': videoId });
-        } else {
-          // If timer is paused, cue the video but do NOT play it yet
-          ytPlayer.cueVideoById({ 'videoId': videoId });
-        }
+      // 2. Load New Audio
+      audioPlayer.src = audioUrl;
+      
+      // 3. Keep playing if the timer is already running
+      if (isRunning) {
+        audioPlayer.play();
       }
     }
 
-    // Initialize display on load
     updateDisplay();
   </script>
 
