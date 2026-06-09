@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notion Pomodoro | Pro Widget</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    /* MONOCHROME VARIABLES */
+    :root {
+      --bg-color: transparent; 
+      --card-top: #2a2a2a;
+      --card-bottom: #111111;
+      --text-main: #ffffff;
+      --text-muted: #888888;
+      --border-color: #444444;
+      --font-ui: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden; 
+      background-color: var(--bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .widget-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      transform: scale(0.9); /* Scaled slightly for perfect Notion fit */
+    }
+
+    /* 1. TOP TABS (Pomodoro / Short / Long) */
+    .mode-tabs {
+      display: flex;
+      gap: 12px;
+    }
+
+    .pill-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .pill-btn:hover {
+      border-color: var(--text-main);
+      color: var(--text-main);
+    }
+
+    .pill-btn.active {
+      background: var(--text-main);
+      color: #000000;
+      border-color: var(--text-main);
+    }
+
+    /* 2. THE TIMER DISPLAY (Flipclock Aesthetic) */
+    .timer-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card {
+      position: relative;
+      width: 110px; 
+      height: 150px; 
+      background: linear-gradient(to bottom, var(--card-top) 50%, var(--card-bottom) 50%);
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .number {
+      font-family: 'Oswald', sans-serif; 
+      font-size: 80px; 
+      font-weight: 700; 
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+      transform: scaleY(1.10); 
+      padding-bottom: 8px; 
+      z-index: 1;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: rgba(0,0,0,0.8);
+      z-index: 5;
+    }
+
+    .colon {
+      font-family: 'Oswald', sans-serif;
+      font-size: 60px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding-bottom: 10px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* 3. CONTROLS (Start & Reset) */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-main {
+      background: var(--text-main);
+      color: #000000;
+      border: none;
+      padding: 10px 32px;
+      border-radius: 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s ease, opacity 0.2s ease;
+    }
+
+    .btn-main:active { transform: scale(0.96); }
+    .btn-main:hover { opacity: 0.9; }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s ease, transform 0.2s ease;
+      padding: 8px;
+    }
+
+    .btn-icon:hover {
+      color: var(--text-main);
+      transform: rotate(-30deg);
+    }
+
+    .btn-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    /* 4. MUSIC SELECTION */
+    .music-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .music-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 4px;
+    }
+
+    .music-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .music-btn:hover { color: var(--text-main); }
+    .music-btn.active {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* HIDDEN YOUTUBE PLAYER */
+    #yt-player {
+      position: absolute;
+      width: 0;
+      height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+</head>
+<body>
+
+  <div class="widget-container">
+    
+    <div class="mode-tabs">
+      <button class="pill-btn active" id="btn-pomo" onclick="setMode('pomo')">Pomodoro</button>
+      <button class="pill-btn" id="btn-short" onclick="setMode('short')">Short Break</button>
+      <button class="pill-btn" id="btn-long" onclick="setMode('long')">Long Break</button>
+    </div>
+
+    <div class="timer-display">
+      <div class="card">
+        <div class="number" id="minutes">25</div>
+      </div>
+      <div class="colon">:</div>
+      <div class="card">
+        <div class="number" id="seconds">00</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-main" id="btn-start" onclick="toggleTimer()">Start</button>
+      <button class="btn-icon" id="btn-reset" onclick="resetTimer()" aria-label="Reset Timer">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="music-controls">
+      <span class="music-label">Audio</span>
+      <button class="music-btn active" id="track-1" onclick="changeTrack(1, 'jfKfPfyJRdk')">Lofi Beats</button>
+      <button class="music-btn" id="track-2" onclick="changeTrack(2, 'mPZkdNFkNps')">Rain & Thunder</button>
+      <button class="music-btn" id="track-3" onclick="changeTrack(3, 'h2zkV-l_TbY')">Cafe Jazz</button>
+    </div>
+
+    <div id="yt-player"></div>
+
+  </div>
+
+  <script>
+    /* --- TIMER LOGIC --- */
+    const MODES = {
+      pomo: 25 * 60,
+      short: 5 * 60,
+      long: 15 * 60
+    };
+
+    let currentMode = 'pomo';
+    let timeLeft = MODES.pomo;
+    let timerId = null;
+    let isRunning = false;
+
+    const elMinutes = document.getElementById('minutes');
+    const elSeconds = document.getElementById('seconds');
+    const btnStart = document.getElementById('btn-start');
+
+    function updateDisplay() {
+      const m = Math.floor(timeLeft / 60);
+      const s = timeLeft % 60;
+      elMinutes.textContent = String(m).padStart(2, '0');
+      elSeconds.textContent = String(s).padStart(2, '0');
+    }
+
+    function setMode(mode) {
+      if (isRunning) toggleTimer(); // Pause if switching modes
+      
+      currentMode = mode;
+      timeLeft = MODES[mode];
+      updateDisplay();
+
+      // Update UI Tabs
+      document.getElementById('btn-pomo').classList.remove('active');
+      document.getElementById('btn-short').classList.remove('active');
+      document.getElementById('btn-long').classList.remove('active');
+      document.getElementById(`btn-${mode}`).classList.add('active');
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        // Pause Logic
+        clearInterval(timerId);
+        btnStart.textContent = "Start";
+        isRunning = false;
+        if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+          ytPlayer.pauseVideo();
+        }
+      } else {
+        // Start Logic
+        timerId = setInterval(() => {
+          timeLeft--;
+          updateDisplay();
+          if (timeLeft <= 0) {
+            toggleTimer(); // Stop at zero
+            // Optional: Play a highly compressed ding.mp3 here
+          }
+        }, 1000);
+        btnStart.textContent = "Pause";
+        isRunning = true;
+        
+        // Command the hidden YouTube player to play
+        if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+          ytPlayer.playVideo();
+        }
+      }
+    }
+
+    function resetTimer() {
+      if (isRunning) toggleTimer();
+      timeLeft = MODES[currentMode];
+      updateDisplay();
+    }
+
+
+    /* --- YOUTUBE API LOGIC --- */
+    let ytPlayer;
+    let currentTrackId = 'jfKfPfyJRdk'; // Default Lofi Girl ID
+
+    // This function is automatically called by the YouTube script once it loads
+    function onYouTubeIframeAPIReady() {
+      ytPlayer = new YT.Player('yt-player', {
+        height: '10',
+        width: '10',
+        videoId: currentTrackId,
+        playerVars: {
+          'autoplay': 0,
+          'controls': 0,
+          'disablekb': 1,
+          'fs': 0,
+          'loop': 1,
+          'playlist': currentTrackId // Required for looping single videos
+        }
+      });
+    }
+
+    function changeTrack(btnNum, videoId) {
+      // 1. Update UI
+      document.getElementById('track-1').classList.remove('active');
+      document.getElementById('track-2').classList.remove('active');
+      document.getElementById('track-3').classList.remove('active');
+      document.getElementById(`track-${btnNum}`).classList.add('active');
+
+      // 2. Instruct YouTube Player
+      currentTrackId = videoId;
+      if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+        if (isRunning) {
+          // If timer is running, load and instantly play the new song
+          ytPlayer.loadVideoById({ 'videoId': videoId });
+        } else {
+          // If timer is paused, cue the video but do NOT play it yet
+          ytPlayer.cueVideoById({ 'videoId': videoId });
+        }
+      }
+    }
+
+    // Initialize display on load
+    updateDisplay();
+  </script>
+
+</body>
+</html>
