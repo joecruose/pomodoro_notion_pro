@@ -184,10 +184,24 @@
   </div>
 
   <script>
-    /* --- DYNAMIC TIMER MODES --- */
-    let MODES = { pomo: 25 * 60, short: 5 * 60, long: 15 * 60 };
+    /* --- 1. STATE VARIABLES (Must load first) --- */
+    const MODES = { pomo: 25 * 60, short: 5 * 60, long: 15 * 60 };
+    let currentMode = 'pomo';
+    let timeLeft = MODES.pomo;
+    let timerId = null;
+    let isRunning = false;
+    let isMuted = false;
+    let visualizerFrame;
 
-    /* --- TOKEN DECODING & INJECTION --- */
+    /* --- 2. DOM ELEMENTS --- */
+    const audioPlayer = document.getElementById('bgm-player');
+    const elMinutes = document.getElementById('minutes');
+    const elSeconds = document.getElementById('seconds');
+    const btnStart = document.getElementById('btn-start');
+    const tabSlider = document.getElementById('tab-slider');
+    const pixelBars = document.querySelectorAll('.pixel-bar');
+
+    /* --- 3. TRACK DATABASE --- */
     const trackDatabase = {
       1: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613675/lofi-beats-01_lekqtn.mp3',
       2: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613677/lofi-beats-02_xmxqxk.mp3',
@@ -201,8 +215,7 @@
       10: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613678/lofi-beats-10_xpw9td.mp3'
     };
 
-    const audioPlayer = document.getElementById('bgm-player');
-
+    /* --- 4. DECODING & INJECTION --- */
     function initializeWidget() {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
@@ -228,20 +241,20 @@
 
           // Apply Tracks & Custom Intervals
           trackNum = payload.tr || 1;
-          if (payload.pm) MODES.pomo = payload.pm * 60;
-          if (payload.sb) MODES.short = payload.sb * 60;
-          if (payload.lb) MODES.long = payload.lb * 60;
+          if (payload.pm) MODES.pomo = parseInt(payload.pm) * 60;
+          if (payload.sb) MODES.short = parseInt(payload.sb) * 60;
+          if (payload.lb) MODES.long = parseInt(payload.lb) * 60;
 
         } catch (e) {
           console.warn("Invalid or missing configuration token. Loading default theme.");
         }
       }
+      
       audioPlayer.src = trackDatabase[trackNum];
-      timeLeft = MODES.pomo;
+      timeLeft = MODES.pomo; // Now safe to update!
     }
-    initializeWidget();
 
-    /* --- ZERO-DEPENDENCY SYNTHESIZED SOUND EFFECTS --- */
+    /* --- 5. ZERO-DEPENDENCY SOUNDS --- */
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let sfxCtx;
 
@@ -279,18 +292,7 @@
       osc.stop(sfxCtx.currentTime + 2.5);
     }
 
-    /* --- TIMER & AUDIO LOGIC --- */
-    let currentMode = 'pomo';
-    let timeLeft = MODES.pomo;
-    let timerId = null;
-    let isRunning = false;
-    let isMuted = false;
-
-    const elMinutes = document.getElementById('minutes');
-    const elSeconds = document.getElementById('seconds');
-    const btnStart = document.getElementById('btn-start');
-    const tabSlider = document.getElementById('tab-slider');
-
+    /* --- 6. TIMER LOGIC --- */
     function updateDisplay() {
       const m = Math.floor(timeLeft / 60);
       const s = timeLeft % 60;
@@ -362,10 +364,7 @@
       animateVisualizer();
     }
 
-    /* --- 8-BIT PSEUDO-VISUALIZER --- */
-    let visualizerFrame;
-    const pixelBars = document.querySelectorAll('.pixel-bar');
-
+    /* --- 7. 8-BIT PSEUDO-VISUALIZER --- */
     function animateVisualizer() {
       if (isRunning && !isMuted && !audioPlayer.paused) {
         pixelBars.forEach(bar => {
@@ -389,6 +388,8 @@
 
     audioPlayer.addEventListener('ended', animateVisualizer);
 
+    /* --- 8. BOOT UP --- */
+    initializeWidget();
     updateDisplay();
   </script>
 
