@@ -113,12 +113,12 @@
     /* 4. AUDIO SELECTION */
     .music-container { width: 100%; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--block-border); padding-top: 20px; }
     .music-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
-    .music-controls { display: flex; justify-content: center; gap: 8px; }
+    .music-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 
     .music-btn {
       background: transparent; border: 1px solid var(--block-border); color: var(--text-muted);
-      font-size: 12px; font-weight: 500; cursor: pointer; padding: 6px 12px; border-radius: 6px;
-      transition: all 0.2s ease; flex: 1;
+      font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; border-radius: 6px;
+      transition: all 0.2s ease; width: 36px; height: 32px; display: flex; align-items: center; justify-content: center;
     }
     .music-btn:hover { border-color: var(--text-muted); color: var(--text-main); }
     .music-btn.active { color: var(--text-main); border-color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
@@ -151,13 +151,20 @@
     <div class="music-container">
       <span class="music-label">Background Audio</span>
       <div class="music-controls">
-        <button class="music-btn active" id="track-1" onclick="changeTrack(1, 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-01_utgcd3.mp3')">Track 1</button>
-        <button class="music-btn" id="track-2" onclick="changeTrack(2, 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-02_utgcd3.mp3')">Track 2</button>
-        <button class="music-btn" id="track-3" onclick="changeTrack(3, 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-03_utgcd3.mp3')">Track 3</button>
+        <button class="music-btn active" id="track-1" onclick="changeTrack('track-1', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613675/lofi-beats-01_lekqtn.mp3')">1</button>
+        <button class="music-btn" id="track-2" onclick="changeTrack('track-2', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613677/lofi-beats-02_xmxqxk.mp3')">2</button>
+        <button class="music-btn" id="track-3" onclick="changeTrack('track-3', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613673/lofi-beats-03_eesska.mp3')">3</button>
+        <button class="music-btn" id="track-4" onclick="changeTrack('track-4', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613674/lofi-beats-04_lmei67.mp3')">4</button>
+        <button class="music-btn" id="track-5" onclick="changeTrack('track-5', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613674/lofi-beats-05_ivzaqg.mp3')">5</button>
+        <button class="music-btn" id="track-6" onclick="changeTrack('track-6', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613677/lofi-beats-06_vrivte.mp3')">6</button>
+        <button class="music-btn" id="track-7" onclick="changeTrack('track-7', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-07_utgcd3.mp3')">7</button>
+        <button class="music-btn" id="track-8" onclick="changeTrack('track-8', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613678/lofi-beats-08_sjrjev.mp3')">8</button>
+        <button class="music-btn" id="track-9" onclick="changeTrack('track-9', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613675/lofi-beats-09_yrrmq0.mp3')">9</button>
+        <button class="music-btn" id="track-10" onclick="changeTrack('track-10', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613678/lofi-beats-10_xpw9td.mp3')">10</button>
       </div>
     </div>
 
-    <audio id="bgm-player" src="https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-01_utgcd3.mp3" loop preload="auto"></audio>
+    <audio id="bgm-player" src="https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613675/lofi-beats-01_lekqtn.mp3" loop preload="auto"></audio>
 
   </div>
 
@@ -272,12 +279,15 @@
       updateDisplay();
     }
 
-    function changeTrack(btnNum, audioUrl) {
+    function changeTrack(btnId, audioUrl) {
       playClickSound();
-      document.getElementById('track-1').classList.remove('active');
-      document.getElementById('track-2').classList.remove('active');
-      document.getElementById('track-3').classList.remove('active');
-      document.getElementById(`track-${btnNum}`).classList.add('active');
+      
+      // Cleanly remove active state from all buttons dynamically
+      const allMusicBtns = document.querySelectorAll('.music-btn');
+      allMusicBtns.forEach(btn => btn.classList.remove('active'));
+      
+      // Add active state to the clicked button
+      document.getElementById(btnId).classList.add('active');
 
       audioPlayer.src = audioUrl;
       if (isRunning) {
