@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notion Pomodoro | Premium Block</title>
+  <title>Notion Pomodoro | Premium</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
 
   <style>
-    /* MONOCHROME VARIABLES */
+    /* DEFAULT MONOCHROME VARIABLES (Overridden by URL Token) */
     :root {
       --bg-transparent: transparent;
       --block-bg: #272727; 
@@ -35,13 +35,14 @@
     .widget-block {
       background-color: var(--block-bg); border: 1px solid var(--block-border);
       border-radius: 24px; padding: 32px; display: flex; flex-direction: column;
-      align-items: center; gap: 24px; 
-      width: 100%; max-width: 340px;
+      align-items: center; gap: 24px; width: 100%; max-width: 340px;
+      /* Box shadow intentionally removed for flush Notion embed */
+      transition: all 0.3s ease;
     }
 
     /* 1. SLIDING TABS */
     .mode-tabs {
-      position: relative; display: flex; background: rgba(0,0,0,0.2);
+      position: relative; display: flex; background: rgba(0,0,0,0.15);
       padding: 6px; border-radius: 20px; width: 100%; max-width: 280px;
     }
 
@@ -57,8 +58,8 @@
       font-size: 13px; font-weight: 600; cursor: pointer; transition: color 0.3s ease;
     }
 
-    .pill-btn:hover { color: #DDDDDD; }
-    .pill-btn.active { color: var(--accent-text); }
+    .pill-btn:hover { color: color-mix(in srgb, var(--text-main) 80%, transparent); }
+    .pill-btn.active { color: var(--accent-text); cursor: default; }
 
     /* 2. TIMER DISPLAY */
     .timer-display { display: flex; align-items: center; gap: 8px; }
@@ -67,7 +68,7 @@
       position: relative; width: 100px; height: 140px; 
       background: linear-gradient(to bottom, var(--card-top) 50%, var(--card-bottom) 50%);
       border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.05); 
+      border: 1px solid color-mix(in srgb, var(--text-main) 10%, transparent); 
     }
 
     .number {
@@ -77,7 +78,7 @@
 
     .card::after {
       content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 2px;
-      background-color: rgba(0,0,0,0.6); z-index: 5;
+      background-color: rgba(0,0,0,0.4); z-index: 5;
     }
 
     .colon {
@@ -101,7 +102,7 @@
     .btn-main:hover { opacity: 0.9; }
 
     .btn-icon {
-      background: rgba(0,0,0,0.2); border: 1px solid var(--block-border); color: var(--text-main);
+      background: rgba(0,0,0,0.1); border: 1px solid var(--block-border); color: var(--text-main);
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); padding: 12px; border-radius: 50%;
     }
@@ -110,18 +111,36 @@
     .btn-icon:active { transform: scale(0.9) rotate(-45deg); }
     .btn-icon svg { width: 20px; height: 20px; fill: currentColor; }
 
-    /* 4. AUDIO SELECTION */
-    .music-container { width: 100%; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--block-border); padding-top: 20px; }
-    .music-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
-    .music-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-
-    .music-btn {
-      background: transparent; border: 1px solid var(--block-border); color: var(--text-muted);
-      font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; border-radius: 6px;
-      transition: all 0.2s ease; width: 36px; height: 32px; display: flex; align-items: center; justify-content: center;
+    /* 4. 8-BIT VISUALIZER */
+    .music-container { 
+      width: 100%; display: flex; justify-content: center; 
+      border-top: 1px solid var(--block-border); padding-top: 24px; 
     }
-    .music-btn:hover { border-color: var(--text-muted); color: var(--text-main); }
-    .music-btn.active { color: var(--text-main); border-color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
+    
+    .visualizer-btn {
+      background: color-mix(in srgb, var(--text-main) 8%, transparent);
+      border: 1px solid var(--block-border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      height: 36px;
+      width: 120px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .visualizer-btn:hover { border-color: var(--text-muted); }
+
+    .pixel-bar {
+      width: 100%;
+      background-color: var(--text-muted);
+      border-radius: 1px;
+      height: 15%; 
+    }
+
   </style>
 </head>
 <body>
@@ -149,26 +168,69 @@
     </div>
 
     <div class="music-container">
-      <span class="music-label">Background Audio</span>
-      <div class="music-controls">
-        <button class="music-btn active" id="track-1" onclick="changeTrack('track-1', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613675/lofi-beats-01_lekqtn.mp3')">1</button>
-        <button class="music-btn" id="track-2" onclick="changeTrack('track-2', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613677/lofi-beats-02_xmxqxk.mp3')">2</button>
-        <button class="music-btn" id="track-3" onclick="changeTrack('track-3', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613673/lofi-beats-03_eesska.mp3')">3</button>
-        <button class="music-btn" id="track-4" onclick="changeTrack('track-4', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613674/lofi-beats-04_lmei67.mp3')">4</button>
-        <button class="music-btn" id="track-5" onclick="changeTrack('track-5', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613674/lofi-beats-05_ivzaqg.mp3')">5</button>
-        <button class="music-btn" id="track-6" onclick="changeTrack('track-6', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613677/lofi-beats-06_vrivte.mp3')">6</button>
-        <button class="music-btn" id="track-7" onclick="changeTrack('track-7', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-07_utgcd3.mp3')">7</button>
-        <button class="music-btn" id="track-8" onclick="changeTrack('track-8', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613678/lofi-beats-08_sjrjev.mp3')">8</button>
-        <button class="music-btn" id="track-9" onclick="changeTrack('track-9', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613675/lofi-beats-09_yrrmq0.mp3')">9</button>
-        <button class="music-btn" id="track-10" onclick="changeTrack('track-10', 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613678/lofi-beats-10_xpw9td.mp3')">10</button>
+      <div class="visualizer-btn" id="visualizer-toggle" onclick="toggleMute()" title="Toggle Audio">
+        <div class="pixel-bar"></div>
+        <div class="pixel-bar"></div>
+        <div class="pixel-bar"></div>
+        <div class="pixel-bar"></div>
+        <div class="pixel-bar"></div>
+        <div class="pixel-bar"></div>
+        <div class="pixel-bar"></div>
+        <div class="pixel-bar"></div>
       </div>
     </div>
 
-    <audio id="bgm-player" src="https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613675/lofi-beats-01_lekqtn.mp3" loop preload="auto"></audio>
+    <audio id="bgm-player" loop preload="auto"></audio>
 
   </div>
 
   <script>
+    /* --- TOKEN DECODING & COLOR INJECTION --- */
+    const trackDatabase = {
+      1: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613675/lofi-beats-01_lekqtn.mp3',
+      2: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613677/lofi-beats-02_xmxqxk.mp3',
+      3: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613673/lofi-beats-03_eesska.mp3',
+      4: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613674/lofi-beats-04_lmei67.mp3',
+      5: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613674/lofi-beats-05_ivzaqg.mp3',
+      6: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613677/lofi-beats-06_vrivte.mp3',
+      7: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-07_utgcd3.mp3',
+      8: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613678/lofi-beats-08_sjrjev.mp3',
+      9: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613675/lofi-beats-09_yrrmq0.mp3',
+      10: 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613678/lofi-beats-10_xpw9td.mp3'
+    };
+
+    const audioPlayer = document.getElementById('bgm-player');
+
+    function initializeWidget() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      let trackNum = 1;
+
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token));
+          const bgHex = parseInt(payload.c1, 36).toString(16).padStart(6, '0');
+          const textHex = parseInt(payload.c2, 36).toString(16).padStart(6, '0');
+          trackNum = payload.tr || 1;
+
+          // Native CSS Color Mixing logic matching the Studio
+          const root = document.documentElement;
+          root.style.setProperty('--block-bg', `#${bgHex}`);
+          root.style.setProperty('--card-top', `color-mix(in srgb, #${bgHex} 80%, black)`);
+          root.style.setProperty('--card-bottom', `color-mix(in srgb, #${bgHex} 60%, black)`);
+          root.style.setProperty('--text-main', `#${textHex}`);
+          root.style.setProperty('--accent', `#${textHex}`);
+          root.style.setProperty('--accent-text', `#${bgHex}`);
+          root.style.setProperty('--text-muted', `color-mix(in srgb, #${textHex} 50%, #${bgHex})`);
+          root.style.setProperty('--block-border', `color-mix(in srgb, #${textHex} 15%, #${bgHex})`);
+        } catch (e) {
+          console.warn("Invalid or missing configuration token. Loading default theme.");
+        }
+      }
+      audioPlayer.src = trackDatabase[trackNum];
+    }
+    initializeWidget();
+
     /* --- ZERO-DEPENDENCY SYNTHESIZED SOUND EFFECTS --- */
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let sfxCtx;
@@ -213,11 +275,11 @@
     let timeLeft = MODES.pomo;
     let timerId = null;
     let isRunning = false;
+    let isMuted = false;
 
     const elMinutes = document.getElementById('minutes');
     const elSeconds = document.getElementById('seconds');
     const btnStart = document.getElementById('btn-start');
-    const audioPlayer = document.getElementById('bgm-player');
     const tabSlider = document.getElementById('tab-slider');
 
     function updateDisplay() {
@@ -229,7 +291,7 @@
 
     function setMode(mode, index) {
       playClickSound();
-      if (isRunning) toggleTimer(false);
+      if (isRunning) toggleTimer(false); 
       
       currentMode = mode;
       timeLeft = MODES[mode];
@@ -250,7 +312,8 @@
         clearInterval(timerId);
         btnStart.textContent = "Start";
         isRunning = false;
-        audioPlayer.pause(); 
+        audioPlayer.pause();
+        animateVisualizer();
       } else {
         timerId = setInterval(() => {
           timeLeft--;
@@ -263,12 +326,13 @@
         btnStart.textContent = "Pause";
         isRunning = true;
         
-        let playPromise = audioPlayer.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.warn("Audio playback interrupted or deferred:", error);
-          });
+        if(!isMuted) {
+            let playPromise = audioPlayer.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(error => console.warn("Audio deferred:", error));
+            }
         }
+        animateVisualizer();
       }
     }
 
@@ -279,24 +343,42 @@
       updateDisplay();
     }
 
-    function changeTrack(btnId, audioUrl) {
-      playClickSound();
-      
-      // Cleanly remove active state from all buttons dynamically
-      const allMusicBtns = document.querySelectorAll('.music-btn');
-      allMusicBtns.forEach(btn => btn.classList.remove('active'));
-      
-      // Add active state to the clicked button
-      document.getElementById(btnId).classList.add('active');
+    function toggleMute() {
+      isMuted = !isMuted;
+      if (isMuted) {
+        audioPlayer.pause();
+      } else if (isRunning) {
+        audioPlayer.play();
+      }
+      animateVisualizer();
+    }
 
-      audioPlayer.src = audioUrl;
-      if (isRunning) {
-        let playPromise = audioPlayer.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(e => console.warn(e));
-        }
+    /* --- 8-BIT PSEUDO-VISUALIZER --- */
+    let visualizerFrame;
+    const pixelBars = document.querySelectorAll('.pixel-bar');
+
+    function animateVisualizer() {
+      if (isRunning && !isMuted && !audioPlayer.paused) {
+        pixelBars.forEach(bar => {
+          const step = Math.floor(Math.random() * 4);
+          const height = 15 + (step * 25);
+          bar.style.height = `${height}%`;
+          bar.style.backgroundColor = 'var(--text-main)';
+        });
+        
+        setTimeout(() => {
+          visualizerFrame = requestAnimationFrame(animateVisualizer);
+        }, 100); 
+      } else {
+        pixelBars.forEach(bar => {
+          bar.style.height = '15%';
+          bar.style.backgroundColor = 'var(--text-muted)';
+        });
+        cancelAnimationFrame(visualizerFrame);
       }
     }
+
+    audioPlayer.addEventListener('ended', animateVisualizer);
 
     updateDisplay();
   </script>
