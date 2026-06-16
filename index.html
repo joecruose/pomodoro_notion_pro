@@ -39,7 +39,7 @@
       width: 100%; max-width: 340px;
     }
 
-    /* 1. SLIDING TABS (Smooth Animation) */
+    /* 1. SLIDING TABS */
     .mode-tabs {
       position: relative; display: flex; background: rgba(0,0,0,0.2);
       padding: 6px; border-radius: 20px; width: 100%; max-width: 280px;
@@ -151,15 +151,13 @@
     <div class="music-container">
       <span class="music-label">Background Audio</span>
       <div class="music-controls">
-        <button class="music-btn active" id="track-1" onclick="changeTrack(1, 'https://pub-83e3667668524d8eac4bc92316da524d.r2.dev/lofi-beats-01.mp3')">Track 1</button>
-        <button class="music-btn" id="track-2" onclick="changeTrack(2, 'https://pub-83e3667668524d8eac4bc92316da524d.r2.dev/lofi-beats-02.mp3')">Track 2</button>
-        <button class="music-btn" id="track-3" onclick="changeTrack(3, 'https://pub-83e3667668524d8eac4bc92316da524d.r2.dev/lofi-beats-03.mp3')">Track 3</button>
+        <button class="music-btn active" id="track-1" onclick="changeTrack(1, 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-01_utgcd3.mp3')">Track 1</button>
+        <button class="music-btn" id="track-2" onclick="changeTrack(2, 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-02_utgcd3.mp3')">Track 2</button>
+        <button class="music-btn" id="track-3" onclick="changeTrack(3, 'https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-03_utgcd3.mp3')">Track 3</button>
       </div>
     </div>
 
-    <audio id="bgm-player" loop preload="none">
-      <source src="https://pub-83e3667668524d8eac4bc92316da524d.r2.dev/lofi-beats-01.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bgm-player" src="https://res.cloudinary.com/drwyxn1v7/video/upload/v1781613679/lofi-beats-01_utgcd3.mp3" loop preload="auto"></audio>
 
   </div>
 
@@ -195,9 +193,9 @@
       osc.connect(gain);
       gain.connect(sfxCtx.destination);
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, sfxCtx.currentTime); // A5 note
+      osc.frequency.setValueAtTime(880, sfxCtx.currentTime);
       gain.gain.setValueAtTime(0.6, sfxCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, sfxCtx.currentTime + 2.5); // Smooth 2.5s fade out
+      gain.gain.exponentialRampToValueAtTime(0.001, sfxCtx.currentTime + 2.5);
       osc.start();
       osc.stop(sfxCtx.currentTime + 2.5);
     }
@@ -224,16 +222,14 @@
 
     function setMode(mode, index) {
       playClickSound();
-      if (isRunning) toggleTimer(false); // Pause without click sound
+      if (isRunning) toggleTimer(false);
       
       currentMode = mode;
       timeLeft = MODES[mode];
       updateDisplay();
 
-      // Animate Slider
       tabSlider.style.transform = `translateX(${index * 100}%)`;
 
-      // Update Text Colors
       document.getElementById('btn-pomo').classList.remove('active');
       document.getElementById('btn-short').classList.remove('active');
       document.getElementById('btn-long').classList.remove('active');
@@ -254,12 +250,18 @@
           updateDisplay();
           if (timeLeft <= 0) {
             toggleTimer(false); 
-            playBellSound(); // Play the synthesized chime when done!
+            playBellSound(); 
           }
         }, 1000);
         btnStart.textContent = "Pause";
         isRunning = true;
-        audioPlayer.play(); 
+        
+        let playPromise = audioPlayer.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.warn("Audio playback interrupted or deferred:", error);
+          });
+        }
       }
     }
 
@@ -278,7 +280,12 @@
       document.getElementById(`track-${btnNum}`).classList.add('active');
 
       audioPlayer.src = audioUrl;
-      if (isRunning) audioPlayer.play();
+      if (isRunning) {
+        let playPromise = audioPlayer.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(e => console.warn(e));
+        }
+      }
     }
 
     updateDisplay();
