@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pomodoro Timer Pro</title>
+  <title>Notion Pomodoro | Premium</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -184,7 +184,7 @@
   </div>
 
   <script>
-    /* --- 1. STATE VARIABLES (Must load first) --- */
+    /* --- 1. STATE VARIABLES --- */
     const MODES = { pomo: 25 * 60, short: 5 * 60, long: 15 * 60 };
     let currentMode = 'pomo';
     let timeLeft = MODES.pomo;
@@ -251,7 +251,7 @@
       }
       
       audioPlayer.src = trackDatabase[trackNum];
-      timeLeft = MODES.pomo; // Now safe to update!
+      timeLeft = MODES.pomo; 
     }
 
     /* --- 5. ZERO-DEPENDENCY SOUNDS --- */
@@ -326,6 +326,12 @@
         audioPlayer.pause();
         animateVisualizer();
       } else {
+        // RESET SAFEGUARD: Prevent negative countdowns
+        if (timeLeft <= 0) {
+          timeLeft = MODES[currentMode];
+          updateDisplay();
+        }
+
         timerId = setInterval(() => {
           timeLeft--;
           updateDisplay();
@@ -334,6 +340,7 @@
             playBellSound(); 
           }
         }, 1000);
+        
         btnStart.textContent = "Pause";
         isRunning = true;
         
