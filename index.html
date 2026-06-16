@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notion Pomodoro | Pro V2</title>
+  <title>Notion Pomodoro | Premium Block</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
 
   <style>
-    /* DYNAMIC VARIABLES (Controlled by Token) */
+    /* MONOCHROME VARIABLES */
     :root {
-      --bg-page: transparent;
+      --bg-transparent: transparent;
       --block-bg: #272727; 
       --block-border: #3A3A3A;
       --card-top: #1F1F1F;
@@ -28,22 +28,21 @@
 
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; 
-      background-color: var(--bg-page); display: flex; justify-content: center;
+      background-color: var(--bg-transparent); display: flex; justify-content: center;
       align-items: center; font-family: var(--font-ui); -webkit-font-smoothing: antialiased;
     }
 
-    /* FLAT DESIGN WIDGET BLOCK (No Box Shadow) */
     .widget-block {
       background-color: var(--block-bg); border: 1px solid var(--block-border);
       border-radius: 24px; padding: 32px; display: flex; flex-direction: column;
-      align-items: center; gap: 24px; width: 100%; max-width: 340px;
+      align-items: center; gap: 24px; 
+      width: 100%; max-width: 340px;
     }
 
-    /* 1. SLIDING TABS */
+    /* 1. SLIDING TABS (Smooth Animation) */
     .mode-tabs {
-      position: relative; display: flex; background: rgba(128,128,128,0.15);
+      position: relative; display: flex; background: rgba(0,0,0,0.2);
       padding: 6px; border-radius: 20px; width: 100%; max-width: 280px;
-      border: 1px solid rgba(128,128,128,0.1);
     }
 
     .tab-indicator {
@@ -58,17 +57,17 @@
       font-size: 13px; font-weight: 600; cursor: pointer; transition: color 0.3s ease;
     }
 
-    .pill-btn:hover { color: var(--text-main); }
+    .pill-btn:hover { color: #DDDDDD; }
     .pill-btn.active { color: var(--accent-text); }
 
-    /* 2. TIMER DISPLAY (No Box Shadow) */
+    /* 2. TIMER DISPLAY */
     .timer-display { display: flex; align-items: center; gap: 8px; }
 
     .card {
       position: relative; width: 100px; height: 140px; 
       background: linear-gradient(to bottom, var(--card-top) 50%, var(--card-bottom) 50%);
       border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden;
-      border: 1px solid rgba(128,128,128,0.15); 
+      border: 1px solid rgba(255,255,255,0.05); 
     }
 
     .number {
@@ -88,21 +87,21 @@
 
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    /* 3. MAIN CONTROLS (No Box Shadow) */
+    /* 3. MAIN CONTROLS */
     .controls { display: flex; align-items: center; gap: 16px; width: 100%; justify-content: center; }
 
     .btn-main {
       background: var(--accent); color: var(--accent-text); border: none; padding: 14px 36px;
       border-radius: 24px; font-size: 16px; font-weight: 600; cursor: pointer;
       transition: transform 0.15s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
-      flex-grow: 1; max-width: 160px;
+      flex-grow: 1; max-width: 160px; 
     }
 
     .btn-main:active { transform: scale(0.95); }
     .btn-main:hover { opacity: 0.9; }
 
     .btn-icon {
-      background: rgba(128,128,128,0.1); border: 1px solid var(--block-border); color: var(--text-main);
+      background: rgba(0,0,0,0.2); border: 1px solid var(--block-border); color: var(--text-main);
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); padding: 12px; border-radius: 50%;
     }
@@ -122,12 +121,12 @@
       transition: all 0.2s ease; flex: 1;
     }
     .music-btn:hover { border-color: var(--text-muted); color: var(--text-main); }
-    .music-btn.active { color: var(--text-main); border-color: var(--text-main); background: rgba(128, 128, 128, 0.1); }
+    .music-btn.active { color: var(--text-main); border-color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
   </style>
 </head>
 <body>
 
-  <div class="widget-block" id="widget">
+  <div class="widget-block">
     
     <div class="mode-tabs">
       <div class="tab-indicator" id="tab-slider"></div>
@@ -165,66 +164,7 @@
   </div>
 
   <script>
-    /* --- ENCRYPTED DUAL-THEME LOGIC --- */
-    function applyCustomColors() {
-      const urlParams = new URLSearchParams(window.location.search);
-      let token = urlParams.get('token');
-
-      // FALLBACK TOKEN FOR LOCAL TESTING (Remove before deploying to force lock screen)
-      // Contains Light Theme (#f6f6e9, #000000) and Dark Theme (#272727, #ffffff)
-      if (!token) {
-        token = "eyJsIjp7InciOiJqNTdkMyIsImMiOiJqNTdkMyIsInQiOiIwIiwiYSI6IjAifSwiZCI6eyJ3IjoiMTFwMmYiLCJjIjoiMTZqYmIiLCJ0IjoiMTF3dHQyIiwiYSI6IjExd3R0MiJ9fQ==";
-      }
-
-      try {
-        const decoded = JSON.parse(atob(token));
-        
-        // Check system preference
-        const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        // Grab the Light ("l") or Dark ("d") configuration object
-        const theme = isDark ? decoded.d : decoded.l;
-
-        if (theme && theme.w && theme.t) {
-          const parseHex = (b36) => '#' + parseInt(b36, 36).toString(16).padStart(6, '0');
-          
-          const widgetBg = parseHex(theme.w);
-          const cardBg = parseHex(theme.c || theme.w);
-          const textHex = parseHex(theme.t);
-          const accentHex = parseHex(theme.a || theme.t);
-
-          // Apply to CSS variables
-          document.documentElement.style.setProperty('--block-bg', widgetBg);
-          
-          // Generates a subtle border that dynamically shifts depending on light/dark backgrounds
-          document.documentElement.style.setProperty('--block-border', `color-mix(in srgb, ${widgetBg} 80%, ${isDark ? 'white' : 'black'})`);
-          
-          document.documentElement.style.setProperty('--card-top', cardBg);
-          document.documentElement.style.setProperty('--card-bottom', `color-mix(in srgb, ${cardBg} 80%, black)`);
-          
-          document.documentElement.style.setProperty('--text-main', textHex);
-          document.documentElement.style.setProperty('--text-muted', `color-mix(in srgb, ${textHex} 50%, transparent)`);
-          
-          document.documentElement.style.setProperty('--accent', accentHex);
-          document.documentElement.style.setProperty('--accent-text', widgetBg);
-
-          document.getElementById('widget').style.display = 'flex';
-          return true;
-        } else {
-          throw new Error("Invalid Token Structure");
-        }
-      } catch (e) {
-        document.body.innerHTML = '<div style="color: #808080; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px;">🔒 Valid configuration token required.</div>';
-        return false;
-      }
-    }
-
-    // Auto-update colors if user toggles Notion light/dark mode
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      applyCustomColors();
-    });
-
-    /* --- SYNTHESIZED SOUND EFFECTS --- */
+    /* --- ZERO-DEPENDENCY SYNTHESIZED SOUND EFFECTS --- */
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let sfxCtx;
 
@@ -237,23 +177,29 @@
       initAudio();
       const osc = sfxCtx.createOscillator();
       const gain = sfxCtx.createGain();
-      osc.connect(gain); gain.connect(sfxCtx.destination);
-      osc.type = 'sine'; osc.frequency.setValueAtTime(600, sfxCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(sfxCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, sfxCtx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(100, sfxCtx.currentTime + 0.05);
       gain.gain.setValueAtTime(0.3, sfxCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, sfxCtx.currentTime + 0.05);
-      osc.start(); osc.stop(sfxCtx.currentTime + 0.05);
+      osc.start();
+      osc.stop(sfxCtx.currentTime + 0.05);
     }
 
     function playBellSound() {
       initAudio();
       const osc = sfxCtx.createOscillator();
       const gain = sfxCtx.createGain();
-      osc.connect(gain); gain.connect(sfxCtx.destination);
-      osc.type = 'sine'; osc.frequency.setValueAtTime(880, sfxCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(sfxCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, sfxCtx.currentTime); // A5 note
       gain.gain.setValueAtTime(0.6, sfxCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, sfxCtx.currentTime + 2.5); 
-      osc.start(); osc.stop(sfxCtx.currentTime + 2.5);
+      gain.gain.exponentialRampToValueAtTime(0.001, sfxCtx.currentTime + 2.5); // Smooth 2.5s fade out
+      osc.start();
+      osc.stop(sfxCtx.currentTime + 2.5);
     }
 
     /* --- TIMER & AUDIO LOGIC --- */
@@ -278,14 +224,16 @@
 
     function setMode(mode, index) {
       playClickSound();
-      if (isRunning) toggleTimer(false); 
+      if (isRunning) toggleTimer(false); // Pause without click sound
       
       currentMode = mode;
       timeLeft = MODES[mode];
       updateDisplay();
 
+      // Animate Slider
       tabSlider.style.transform = `translateX(${index * 100}%)`;
 
+      // Update Text Colors
       document.getElementById('btn-pomo').classList.remove('active');
       document.getElementById('btn-short').classList.remove('active');
       document.getElementById('btn-long').classList.remove('active');
@@ -306,7 +254,7 @@
           updateDisplay();
           if (timeLeft <= 0) {
             toggleTimer(false); 
-            playBellSound(); 
+            playBellSound(); // Play the synthesized chime when done!
           }
         }, 1000);
         btnStart.textContent = "Pause";
@@ -333,11 +281,7 @@
       if (isRunning) audioPlayer.play();
     }
 
-    // Initialize 
-    const isAuthorized = applyCustomColors();
-    if (isAuthorized) {
-      updateDisplay();
-    }
+    updateDisplay();
   </script>
 
 </body>
