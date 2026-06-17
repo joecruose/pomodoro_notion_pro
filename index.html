@@ -110,19 +110,36 @@
     .btn-icon:active { transform: scale(0.9) rotate(-45deg); }
     .btn-icon svg { width: 20px; height: 20px; fill: currentColor; }
 
-    /* 4. ELEGANT SINE WAVE VISUALIZER */
+    /* 4. INSET SCREEN VISUALIZER */
     .music-container { 
       width: 100%; display: flex; justify-content: center; align-items: center;
-      border-top: 1px solid var(--block-border); padding-top: 20px; cursor: pointer;
+      border-top: 1px solid var(--block-border); padding-top: 24px; cursor: pointer;
+    }
+
+    .visualizer-screen {
+      width: 100%; 
+      height: 56px; 
+      background-color: color-mix(in srgb, var(--block-bg) 60%, black); 
+      border: 1px solid color-mix(in srgb, var(--block-bg) 40%, black);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 3px 8px rgba(0,0,0,0.25);
+      transition: transform 0.1s ease;
+      padding: 0;
+    }
+
+    .visualizer-screen:active {
+      transform: scale(0.98);
     }
 
     #wave-canvas {
-      width: 100%; height: 36px;
-      display: block; opacity: 0.7;
+      width: 100%; height: 100%;
+      display: block; opacity: 0.85;
       transition: opacity 0.3s ease;
     }
 
-    .music-container:hover #wave-canvas {
+    .visualizer-screen:hover #wave-canvas {
       opacity: 1;
     }
 
@@ -153,10 +170,12 @@
     </div>
 
     <div class="music-container" onclick="toggleMute()" title="Toggle Audio">
-      <canvas id="wave-canvas"></canvas>
+      <div class="visualizer-screen">
+        <canvas id="wave-canvas"></canvas>
+      </div>
     </div>
 
-    <audio id="bgm-player" loop preload="auto"></audio>
+    <audio id="bgm-player" loop preload="auto" crossorigin="anonymous"></audio>
 
   </div>
 
@@ -200,7 +219,6 @@
         try {
           const payload = JSON.parse(atob(token));
           
-          // Apply Colors
           const bgHex = parseInt(payload.c1, 36).toString(16).padStart(6, '0');
           const textHex = parseInt(payload.c2, 36).toString(16).padStart(6, '0');
           
@@ -214,14 +232,13 @@
           root.style.setProperty('--text-muted', `color-mix(in srgb, #${textHex} 50%, #${bgHex})`);
           root.style.setProperty('--block-border', `color-mix(in srgb, #${textHex} 15%, #${bgHex})`);
 
-          // Apply Tracks & Custom Intervals
           trackNum = payload.tr || 1;
           if (payload.pm) MODES.pomo = parseInt(payload.pm) * 60;
           if (payload.sb) MODES.short = parseInt(payload.sb) * 60;
           if (payload.lb) MODES.long = parseInt(payload.lb) * 60;
 
         } catch (e) {
-          console.warn("Invalid or missing configuration token. Loading default theme.");
+          console.warn("Invalid configuration token. Loading default theme.");
         }
       }
       
@@ -229,17 +246,36 @@
       timeLeft = MODES.pomo; 
     }
 
-    /* --- 5. ZERO-DEPENDENCY SOUNDS --- */
+    /* --- 5. AUDIO CONTEXT & SFX --- */
     const AudioContext = window.AudioContext || window.webkitAudioContext;
-    let sfxCtx;
+    let sfxCtx, musicCtx, analyser, audioSource;
+    const freqData = new Uint8Array(128); 
 
-    function initAudio() {
+    function initSFX() {
       if (!sfxCtx) sfxCtx = new AudioContext();
       if (sfxCtx.state === 'suspended') sfxCtx.resume();
     }
 
+    function initAudioReactivity() {
+      if (!musicCtx) {
+        musicCtx = new AudioContext();
+        analyser = musicCtx.createAnalyser();
+        analyser.fftSize = 256; 
+        
+        // High smoothing to keep the bars calm and elegant
+        analyser.smoothingTimeConstant = 0.92; 
+        
+        audioSource = musicCtx.createMediaElementSource(audioPlayer);
+        audioSource.connect(analyser);
+        analyser.connect(musicCtx.destination);
+      }
+      if (musicCtx.state === 'suspended') {
+        musicCtx.resume();
+      }
+    }
+
     function playClickSound() {
-      initAudio();
+      initSFX();
       const osc = sfxCtx.createOscillator();
       const gain = sfxCtx.createGain();
       osc.connect(gain);
@@ -254,7 +290,7 @@
     }
 
     function playBellSound() {
-      initAudio();
+      initSFX();
       const osc = sfxCtx.createOscillator();
       const gain = sfxCtx.createGain();
       osc.connect(gain);
@@ -300,7 +336,6 @@
         isRunning = false;
         audioPlayer.pause();
       } else {
-        // RESET SAFEGUARD: Prevent negative countdowns
         if (timeLeft <= 0) {
           timeLeft = MODES[currentMode];
           updateDisplay();
@@ -319,6 +354,7 @@
         isRunning = true;
         
         if(!isMuted) {
+            initAudioReactivity();
             let playPromise = audioPlayer.play();
             if (playPromise !== undefined) {
               playPromise.catch(error => console.warn("Audio deferred:", error));
@@ -339,22 +375,26 @@
       if (isMuted) {
         audioPlayer.pause();
       } else if (isRunning) {
+        initAudioReactivity();
         audioPlayer.play();
       }
     }
 
-    /* --- 7. ELEGANT SINE WAVE VISUALIZER --- */
+    /* --- 7. ELEGANT VERTICAL BARS VISUALIZER --- */
     const canvas = document.getElementById('wave-canvas');
     const ctx = canvas.getContext('2d');
-    let phase = 0;
-    let currentAmplitude = 0;
+    let transitionFade = 0; 
+    let phase = 0; 
+
+    // The number of bars. 32 provides a dense but clean look.
+    const numBars = 32; 
+    let smoothBars = new Array(numBars).fill(0); 
 
     function resizeCanvas() {
       canvas.width = canvas.offsetWidth * window.devicePixelRatio;
       canvas.height = canvas.offsetHeight * window.devicePixelRatio;
     }
     
-    // Initialize canvas sizing
     window.addEventListener('resize', resizeCanvas);
     setTimeout(resizeCanvas, 0);
 
@@ -362,41 +402,86 @@
       requestAnimationFrame(drawWave);
       
       const isPlaying = isRunning && !isMuted && !audioPlayer.paused;
-      const targetAmplitude = isPlaying ? 12 : 0;
-      currentAmplitude += (targetAmplitude - currentAmplitude) * 0.1; // Smooth transition
-      
-      if (isPlaying) phase += 0.05; // Horizontal scrolling speed
-      
       const width = canvas.width;
       const height = canvas.height;
       const dpr = window.devicePixelRatio;
       const centerY = height / 2;
-      
-      ctx.clearRect(0, 0, width, height);
-      
-      // Grab the live CSS variable color dynamically
-      const color = getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim() || '#FFFFFF';
-      
-      function drawSine(frequency, amplitudeMulti, phaseOffset, alpha, lineWidth) {
-        ctx.beginPath();
-        ctx.moveTo(0, centerY);
-        for (let x = 0; x < width; x += 2) {
-            const xPos = x / dpr;
-            const y = Math.sin((xPos * frequency) + phaseOffset) * (currentAmplitude * amplitudeMulti * dpr);
-            ctx.lineTo(x, centerY + y);
-        }
-        ctx.strokeStyle = color;
-        ctx.globalAlpha = alpha;
-        ctx.lineWidth = lineWidth * dpr;
-        ctx.stroke();
+
+      // Max height a bar can reach (leaving a small padding at the top/bottom)
+      const maxAmp = (height / 2) - (4 * dpr); 
+
+      if (isPlaying) {
+        transitionFade += (1.0 - transitionFade) * 0.08;
+        phase += 0.02;
+      } else {
+        transitionFade += (0.0 - transitionFade) * 0.08;
+        phase += 0.01;
       }
       
-      // Draw two overlapping waves for a fluid, ambient look
-      drawSine(0.04, 1.0, phase, 1.0, 2);           // Main thick wave
-      drawSine(0.06, 0.6, -phase * 0.8, 0.3, 1.5);  // Background ghost wave
+      ctx.clearRect(0, 0, width, height);
+      const color = getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim() || '#FFFFFF';
+      
+      if (isPlaying && analyser) {
+        analyser.getByteFrequencyData(freqData);
+      }
+
+      // Calculate elegant spacing
+      const availableWidth = width - (16 * dpr); // Keep 8px padding on left/right
+      const spacePerBar = availableWidth / numBars;
+      const barWidth = spacePerBar * 0.55; // Bars take up 55% of their space slot, leaving a 45% gap
+      const startX = (8 * dpr) + (spacePerBar / 2);
+
+      for (let i = 0; i < numBars; i++) {
+        let val = 0;
+        
+        // Map data symmetrically from the center outwards
+        const distanceFromCenter = Math.abs((i - (numBars / 2)) / (numBars / 2)); 
+
+        if (isPlaying && analyser && transitionFade > 0.01) {
+            // Focus on lower and mid-frequencies
+            const binIndex = Math.floor(distanceFromCenter * (analyser.frequencyBinCount * 0.35));
+            val = freqData[binIndex] / 255.0;
+            
+            // Boost the edges slightly so the treble bars aren't completely dead
+            const eqMultiplier = 1.0 + (distanceFromCenter * 1.5);
+            val = val * eqMultiplier;
+            val = Math.tanh(val * 1.2); 
+        } else {
+            // Gentle idle pulsing state
+            val = Math.abs(Math.cos(distanceFromCenter * Math.PI * 1.5)) * (0.05 + Math.sin(phase) * 0.02);
+        }
+
+        // Apply transition fade (when pausing/muting)
+        const targetAmp = val * maxAmp * transitionFade;
+        
+        // Easing multiplier (0.15) keeps the bars snappy but smooth
+        smoothBars[i] += (targetAmp - smoothBars[i]) * 0.15;
+
+        // Ensure bars always have at least a tiny dot presence (e.g. equal to their width)
+        const currentAmp = Math.max(smoothBars[i], barWidth / 2);
+
+        const x = startX + (i * spacePerBar);
+
+        // Draw the bar
+        ctx.beginPath();
+        // Start from top edge of the bar
+        ctx.moveTo(x, centerY - currentAmp);
+        // Draw down to the bottom edge of the bar
+        ctx.lineTo(x, centerY + currentAmp);
+
+        ctx.strokeStyle = color;
+        // Rounded caps are essential for an elegant look
+        ctx.lineCap = 'round';
+        ctx.lineWidth = barWidth;
+        
+        // Make the bars slightly transparent when very quiet, fully solid when loud
+        const alpha = 0.4 + (currentAmp / maxAmp) * 0.6;
+        ctx.globalAlpha = Math.min(alpha, 0.9);
+        
+        ctx.stroke();
+      }
     }
     
-    // Start the animation loop
     drawWave();
 
     /* --- 8. BOOT UP --- */
