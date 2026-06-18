@@ -219,8 +219,16 @@
         try {
           const payload = JSON.parse(atob(token));
           
-          const bgHex = parseInt(payload.c1, 36).toString(16).padStart(6, '0');
-          const textHex = parseInt(payload.c2, 36).toString(16).padStart(6, '0');
+          let bgHex = parseInt(payload.c1, 36).toString(16).padStart(6, '0');
+          let textHex = parseInt(payload.c2, 36).toString(16).padStart(6, '0');
+          
+          // DARK MODE OVERRIDE LOGIC
+          const isDarkMode = payload.dm === 1 || urlParams.get('theme') === 'dark';
+          
+          if (isDarkMode) {
+             bgHex = '191919';
+             textHex = 'ffffff';
+          }
           
           const root = document.documentElement;
           root.style.setProperty('--block-bg', `#${bgHex}`);
