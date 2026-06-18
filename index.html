@@ -222,10 +222,9 @@
           let bgHex = parseInt(payload.c1, 36).toString(16).padStart(6, '0');
           let textHex = parseInt(payload.c2, 36).toString(16).padStart(6, '0');
           
-          // DARK MODE OVERRIDE LOGIC
+          // Secondary fallback check just in case it wasn't passed directly via C1
           const isDarkMode = payload.dm === 1 || urlParams.get('theme') === 'dark';
-          
-          if (isDarkMode) {
+          if (isDarkMode && bgHex !== '191919') {
              bgHex = '191919';
              textHex = 'ffffff';
           }
