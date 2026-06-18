@@ -12,7 +12,7 @@
   <style>
     /* DEFAULT MONOCHROME VARIABLES (Overridden by URL Token) */
     :root {
-      --bg-transparent: transparent;
+      --page-bg: transparent; /* CONTROLS THE OUTER BACKGROUND */
       --block-bg: #272727; 
       --block-border: #3A3A3A;
       --card-top: #1F1F1F;
@@ -28,8 +28,9 @@
 
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; 
-      background-color: var(--bg-transparent); display: flex; justify-content: center;
+      background-color: var(--page-bg); display: flex; justify-content: center;
       align-items: center; font-family: var(--font-ui); -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease;
     }
 
     .widget-block {
@@ -214,6 +215,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
       let trackNum = 1;
+      const root = document.documentElement;
 
       if (token) {
         try {
@@ -222,14 +224,15 @@
           let bgHex = parseInt(payload.c1, 36).toString(16).padStart(6, '0');
           let textHex = parseInt(payload.c2, 36).toString(16).padStart(6, '0');
           
-          // Secondary fallback check just in case it wasn't passed directly via C1
+          // SET OUTER PAGE BACKGROUND BASED ON DARK MODE TOKEN
           const isDarkMode = payload.dm === 1 || urlParams.get('theme') === 'dark';
-          if (isDarkMode && bgHex !== '191919') {
-             bgHex = '191919';
-             textHex = 'ffffff';
+          if (isDarkMode) {
+             root.style.setProperty('--page-bg', '#191919');
+          } else {
+             root.style.setProperty('--page-bg', 'transparent');
           }
           
-          const root = document.documentElement;
+          // APPLY USER WIDGET COLORS NORMALLY
           root.style.setProperty('--block-bg', `#${bgHex}`);
           root.style.setProperty('--card-top', `color-mix(in srgb, #${bgHex} 80%, black)`);
           root.style.setProperty('--card-bottom', `color-mix(in srgb, #${bgHex} 60%, black)`);
